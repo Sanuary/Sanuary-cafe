@@ -1,11 +1,7 @@
 {
-  "functions": {
-    "api/*.js": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  },
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+  "rewrites": [
+    { "source": "/api/notify", "destination": "/api/notify" },
+    { "source": "/api/webhook", "destination": "/api/webhook" },
+    { "source": "/(.*)", "destination": "/public/index.html" }
   ]
 }
