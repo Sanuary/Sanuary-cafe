@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sanuary Cafe</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0e0c;color:#f5f0e8;font-family:'Sarabun',sans-serif;max-width:430px;margin:0 auto;min-height:100vh}
+    ::-webkit-scrollbar{width:0;height:0}
+
+    /* Header */
+    .header{padding:20px 20px 0;display:flex;justify-content:space-between;align-items:flex-start}
+    .header-title{font-family:'Playfair Display',serif;font-size:26px;font-style:italic;color:#f5f0e8}
+    .header-sub{font-size:11px;color:#c9a84c;letter-spacing:3px;text-transform:uppercase;margin-bottom:2px}
+    .points-box{background:#1a1814;border:1px solid #2e2a22;border-radius:12px;padding:8px 14px;text-align:right}
+    .points-label{font-size:10px;color:#a89880}
+    .points-val{font-size:20px;font-weight:700;color:#c9a84c}
+
+    /* Nav */
+    .nav{display:flex;gap:6px;padding:16px 20px;border-bottom:1px solid #1e1c18}
+    .nav-btn{flex:1;padding:8px 4px;border-radius:10px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;transition:all .2s;background:#1a1814;color:#a89880}
+    .nav-btn.active{background:#c9a84c;color:#0f0e0c}
+    .nav-icon{font-size:16px;display:block;margin-bottom:2px}
+
+    /* Page */
+    .page{display:none;padding:16px 20px 100px}
+    .page.active{display:block}
+
+    /* Category filter */
+    .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:16px}
+    .cat-btn{padding:6px 16px;border-radius:20px;border:none;cursor:pointer;white-space:nowrap;font-size:12px;font-weight:600;font-family:inherit;background:#1a1814;color:#a89880;transition:all .2s}
+    .cat-btn.active{background:#c9a84c;color:#0f0e0c}
+
+    /* Menu grid */
+    .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .menu-card{background:#1a1814;border-radius:16px;border:1px solid #2e2a22;overflow:hidden;transition:border .2s}
+    .menu-card.in-cart{border-color:#c9a84c}
+    .menu-emoji{height:90px;background:#242018;display:flex;align-items:center;justify-content:center;font-size:42px}
+    .menu-info{padding:12px}
+    .menu-name{font-size:13px;font-weight:700;color:#f5f0e8}
+    .menu-name-en{font-size:10px;color:#a89880;margin-bottom:6px}
+    .menu-bottom{display:flex;justify-content:space-between;align-items:center}
+    .menu-price{font-size:14px;font-weight:700;color:#c9a84c}
+    .add-btn{padding:4px 12px;border-radius:8px;border:none;background:#2e2a22;color:#c9a84c;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit}
+    .qty-ctrl{display:flex;align-items:center;gap:6px}
+    .qty-btn{width:24px;height:24px;border-radius:50%;border:1px solid #c9a84c;background:transparent;color:#c9a84c;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+    .qty-btn.plus{background:#c9a84c;color:#0f0e0c;border:none;font-weight:700}
+    .qty-num{font-size:13px;color:#f5f0e8;min-width:16px;text-align:center}
+
+    /* Cart */
+    .page-title{font-size:16px;font-weight:700;margin-bottom:16px;color:#f5f0e8}
+    .cart-item{background:#1a1814;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid #2e2a22;display:flex;justify-content:space-between;align-items:center}
+    .cart-item-name{font-size:14px;font-weight:600;color:#f5f0e8}
+    .cart-item-price{font-size:12px;color:#c9a84c}
+    .cart-item-right{display:flex;align-items:center;gap:10px}
+    .cart-total-box{background:#1a1814;border-radius:14px;padding:16px;margin-top:16px;border:1px solid #2e2a22}
+    .cart-row{display:flex;justify-content:space-between;margin-bottom:8px}
+    .cart-row-label{color:#a89880;font-size:13px}
+    .cart-row-val{font-weight:700;font-size:16px;color:#f5f0e8}
+    .cart-row-pts{font-weight:700;color:#c9a84c}
+    .order-btn{width:100%;padding:14px;border-radius:12px;border:none;background:#c9a84c;color:#0f0e0c;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px}
+    .empty{text-align:center;color:#a89880;padding-top:60px}
+    .empty-icon{font-size:48px;margin-bottom:12px}
+
+    /* Points */
+    .points-card{background:linear-gradient(135deg,#2a2318 0%,#1a1814 100%);border-radius:20px;padding:24px;margin-bottom:20px;border:1px solid #3a3020;text-align:center}
+    .points-big{font-size:52px;font-weight:700;color:#c9a84c;line-height:1.2}
+    .points-unit{font-size:12px;color:#a89880}
+    .points-bar-bg{margin-top:12px;height:6px;background:#0f0e0c;border-radius:3px;overflow:hidden}
+    .points-bar{height:100%;background:#c9a84c;border-radius:3px;transition:width .5s}
+    .points-hint{font-size:11px;color:#a89880;margin-top:6px}
+    .reward-card{background:#1a1814;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid #2e2a22;display:flex;justify-content:space-between;align-items:center}
+    .reward-left{display:flex;align-items:center;gap:12px}
+    .reward-emoji{font-size:28px}
+    .reward-name{font-size:13px;font-weight:600;color:#f5f0e8}
+    .reward-pts{font-size:11px;color:#c9a84c}
+    .redeem-btn{padding:8px 16px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+    .redeem-btn.can{background:#c9a84c;color:#0f0e0c}
+    .redeem-btn.cant{background:#2e2a22;color:#6b6355;cursor:not-allowed}
+    .points-info{margin-top:16px;padding:14px;background:#1a1814;border-radius:14px;border:1px solid #2e2a22}
+    .points-info-label{font-size:12px;color:#a89880;margin-bottom:6px}
+    .points-info-val{font-size:12px;color:#f5f0e8}
+    .points-info-sub{font-size:11px;color:#6b6355;margin-top:4px}
+
+    /* History */
+    .history-card{background:#1a1814;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid #2e2a22}
+    .history-top{display:flex;justify-content:space-between;margin-bottom:10px}
+    .history-table{font-size:12px;font-weight:700;color:#f5f0e8}
+    .history-time{font-size:11px;color:#a89880}
+    .history-total{font-size:15px;font-weight:700;color:#c9a84c}
+    .history-pts{font-size:11px;color:#4ade80}
+    .history-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .history-tag{font-size:11px;background:#242018;border-radius:8px;padding:3px 8px;color:#a89880}
+    .history-status{margin-top:10px;font-size:11px;text-align:right}
+
+    /* Notification */
+    .notif{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:12px;font-size:14px;z-index:999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideDown .3s ease;display:none}
+    .notif.success{background:#1a3a1a;border:1px solid #4ade80;color:#fff}
+    .notif.error{background:#7f1d1d;border:1px solid #dc2626;color:#fff}
+    .notif.show{display:block}
+
+    /* Overlay */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:998}
+    .overlay.show{display:flex}
+    .overlay-icon{font-size:72px}
+    .overlay-title{font-size:22px;font-weight:700;color:#f5f0e8;margin-top:16px}
+    .overlay-sub{font-size:14px;color:#a89880;margin-top:8px}
+    .overlay-badge{margin-top:8px;background:#1a3a1a;border:1px solid #4ade80;padding:6px 16px;border-radius:20px;font-size:13px;color:#4ade80}
+
+    @keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  </style>
+</head>
+<body>
+
+<!-- Notification -->
+<div class="notif" id="notif"></div>
+
+<!-- Order Overlay -->
+<div class="overlay" id="orderOverlay">
+  <div class="overlay-icon">✅</div>
+  <div class="overlay-title">ส่งออเดอร์แล้ว!</div>
+  <div class="overlay-sub">แจ้งเตือนครัวเรียบร้อย</div>
+  <div class="overlay-badge" id="overlayPts"></div>
+</div>
+
+<!-- Reward Overlay -->
+<div class="overlay" id="rewardOverlay">
+  <div class="overlay-icon" id="rewardIcon"></div>
+  <div class="overlay-title">แลกรางวัลสำเร็จ!</div>
+  <div class="overlay-sub" id="rewardName"></div>
+  <div class="overlay-sub" style="color:#6b6355;margin-top:4px">แสดงให้พนักงานเพื่อรับรางวัล</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="header-sub">TABLE <span id="tableNo">1</span></div>
+    <div class="header-title">Sanuary Cafe</div>
+  </div>
+  <div class="points-box">
+    <div class="points-label">แต้มสะสม</div>
+    <div class="points-val"><span id="headerPts">0</span> <span style="font-size:11px">pts</span></div>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('menu',this)">
+    <span class="nav-icon">🍵</span>เมนู
+  </button>
+  <button class="nav-btn" onclick="showPage('cart',this)" id="cartBtn">
+    <span class="nav-icon">🛒</span><span id="cartLabel">ตะกร้า</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('points',this)">
+    <span class="nav-icon">🏆</span>แต้ม
+  </button>
+  <button class="nav-btn" onclick="showPage('history',this)">
+    <span class="nav-icon">📋</span>ประวัติ
+  </button>
+</div>
+
+<!-- MENU PAGE -->
+<div class="page active" id="page-menu">
+  <div class="cats" id="cats"></div>
+  <div class="menu-grid" id="menuGrid"></div>
+</div>
+
+<!-- CART PAGE -->
+<div class="page" id="page-cart">
+  <div class="page-title">รายการสั่ง</div>
+  <div id="cartItems"></div>
+  <div id="cartSummary"></div>
+</div>
+
+<!-- POINTS PAGE -->
+<div class="page" id="page-points">
+  <div class="points-card">
+    <div class="points-unit">แต้มสะสม</div>
+    <div class="points-big" id="bigPts">0</div>
+    <div class="points-unit">points</div>
+    <div class="points-bar-bg"><div class="points-bar" id="ptsBar" style="width:0%"></div></div>
+    <div class="points-hint" id="ptsHint"></div>
+  </div>
+  <div class="page-title">แลกของรางวัล 🎁</div>
+  <div id="rewardList"></div>
+  <div class="points-info">
+    <div class="points-info-label">วิธีสะสมแต้ม</div>
+    <div class="points-info-val">ทุก ฿10 = 1 แต้ม</div>
+    <div class="points-info-sub">แต้มไม่มีวันหมดอายุ</div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="page-history">
+  <div class="page-title">ประวัติการสั่ง</div>
+  <div id="historyList"></div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const LIFF_ID = "2009488743-WRp4RXQs";
+const TABLE_NO = new URLSearchParams(location.search).get("table") || "1";
+
+// ===== DATA =====
+const MENU = [
+  {id:1,name:"Latte",nameTH:"ลาเต้",price:85,cat:"coffee",emoji:"☕"},
+  {id:2,name:"Cappuccino",nameTH:"คาปูชิโน่",price:80,cat:"coffee",emoji:"☕"},
+  {id:3,name:"Matcha Latte",nameTH:"มัทฉะลาเต้",price:95,cat:"tea",emoji:"🍵"},
+  {id:4,name:"Americano",nameTH:"อเมริกาโน่",price:70,cat:"coffee",emoji:"☕"},
+  {id:5,name:"Thai Tea",nameTH:"ชาไทย",price:60,cat:"tea",emoji:"🧋"},
+  {id:6,name:"Strawberry Smoothie",nameTH:"สตรอว์เบอร์รี่",price:110,cat:"smoothie",emoji:"🍓"},
+  {id:7,name:"Croissant",nameTH:"ครัวซองต์",price:65,cat:"food",emoji:"🥐"},
+  {id:8,name:"Cheesecake",nameTH:"ชีสเค้ก",price:120,cat:"food",emoji:"🍰"},
+];
+const CATS = [
+  {id:"all",label:"ทั้งหมด"},
+  {id:"coffee",label:"กาแฟ"},
+  {id:"tea",label:"ชา"},
+  {id:"smoothie",label:"สมูทตี้"},
+  {id:"food",label:"อาหาร"},
+];
+const REWARDS = [
+  {id:1,nameTH:"อเมริกาโน่ฟรี 1 แก้ว",points:50,emoji:"☕"},
+  {id:2,nameTH:"ส่วนลด 10%",points:30,emoji:"🎫"},
+  {id:3,nameTH:"ครัวซองต์ฟรี 1 ชิ้น",points:40,emoji:"🥐"},
+];
+
+// ===== STATE =====
+let cart = [];
+let orders = JSON.parse(localStorage.getItem("sanuary_orders")||"[]");
+let points = parseInt(localStorage.getItem("sanuary_points")||"0");
+let currentCat = "all";
+let userId = "";
+let displayName = "";
+
+// ===== INIT =====
+document.getElementById("tableNo").textContent = TABLE_NO;
+renderCats(); renderMenu(); renderPoints(); renderHistory();
+
+// Init LIFF
+liff.init({liffId: LIFF_ID}).then(()=>{
+  if(liff.isLoggedIn()){
+    liff.getProfile().then(p=>{
+      userId = p.userId;
+      displayName = p.displayName;
+    });
+  } else {
+    liff.login();
+  }
+}).catch(e=>console.log("LIFF init error",e));
+
+// ===== RENDER =====
+function renderCats(){
+  document.getElementById("cats").innerHTML = CATS.map(c=>`
+    <button class="cat-btn ${c.id===currentCat?'active':''}" onclick="filterCat('${c.id}')">${c.label}</button>
+  `).join("");
+}
+
+function renderMenu(){
+  const items = currentCat==="all"?MENU:MENU.filter(m=>m.cat===currentCat);
+  document.getElementById("menuGrid").innerHTML = items.map(item=>{
+    const inCart = cart.find(i=>i.id===item.id);
+    return `
+    <div class="menu-card ${inCart?'in-cart':''}" id="card-${item.id}">
+      <div class="menu-emoji">${item.emoji}</div>
+      <div class="menu-info">
+        <div class="menu-name">${item.nameTH}</div>
+        <div class="menu-name-en">${item.name}</div>
+        <div class="menu-bottom">
+          <span class="menu-price">฿${item.price}</span>
+          ${inCart?`
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
+              <span class="qty-num">${inCart.qty}</span>
+              <button class="qty-btn plus" onclick="updateQty(${item.id},1)">+</button>
+            </div>
+          `:`<button class="add-btn" onclick="addToCart(${item.id})">เพิ่ม</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderCart(){
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const pts = Math.floor(total/10);
+  const count = cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById("cartLabel").textContent = count>0?`ตะกร้า (${count})`:"ตะกร้า";
+
+  if(cart.length===0){
+    document.getElementById("cartItems").innerHTML=`<div class="empty"><div class="empty-icon">🛒</div>ยังไม่มีรายการ</div>`;
+    document.getElementById("cartSummary").innerHTML="";
+    return;
+  }
+
+  document.getElementById("cartItems").innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div>
+        <div class="cart-item-name">${item.emoji} ${item.nameTH}</div>
+        <div class="cart-item-price">฿${item.price} × ${item.qty}</div>
+      </div>
+      <div class="cart-item-right">
+        <span style="font-size:14px;font-weight:700;color:#f5f0e8">฿${item.price*item.qty}</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn plus" onclick="updateQty(${item.id},1)">+</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("cartSummary").innerHTML=`
+    <div class="cart-total-box">
+      <div class="cart-row">
+        <span class="cart-row-label">ยอดรวม</span>
+        <span class="cart-row-val">฿${total}</span>
+      </div>
+      <div class="cart-row">
+        <span class="cart-row-label">แต้มที่จะได้รับ</span>
+        <span class="cart-row-pts">+${pts} pts 🏆</span>
+      </div>
+      <button class="order-btn" onclick="placeOrder()">✅ สั่งอาหาร — โต๊ะ ${TABLE_NO}</button>
+    </div>`;
+}
+
+function renderPoints(){
+  document.getElementById("bigPts").textContent = points;
+  document.getElementById("headerPts").textContent = points;
+  const pct = Math.min((points%100)/100*100,100);
+  document.getElementById("ptsBar").style.width = pct+"%";
+  document.getElementById("ptsHint").textContent = `อีก ${Math.max(100-points%100,0)} แต้ม ถึงระดับถัดไป`;
+
+  document.getElementById("rewardList").innerHTML = REWARDS.map(r=>`
+    <div class="reward-card">
+      <div class="reward-left">
+        <span class="reward-emoji">${r.emoji}</span>
+        <div>
+          <div class="reward-name">${r.nameTH}</div>
+          <div class="reward-pts">${r.points} แต้ม</div>
+        </div>
+      </div>
+      <button class="redeem-btn ${points>=r.points?'can':'cant'}" onclick="redeemReward(${r.id})">
+        ${points>=r.points?'แลก':'ไม่พอ'}
+      </button>
+    </div>
+  `).join("");
+}
+
+function renderHistory(){
+  if(orders.length===0){
+    document.getElementById("historyList").innerHTML=`<div class="empty"><div class="empty-icon">📋</div>ยังไม่มีประวัติการสั่ง</div>`;
+    return;
+  }
+  document.getElementById("historyList").innerHTML = orders.map(o=>`
+    <div class="history-card">
+      <div class="history-top">
+        <div>
+          <div class="history-table">โต๊ะ ${o.table}</div>
+          <div class="history-time">${o.date} · ${o.time}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="history-total">฿${o.total}</div>
+          <div class="history-pts">+${o.pointsEarned} pts</div>
+        </div>
+      </div>
+      <div class="history-tags">
+        ${o.items.map(i=>`<span class="history-tag">${i.emoji} ${i.nameTH} ×${i.qty}</span>`).join("")}
+      </div>
+      <div class="history-status" style="color:${o.status==='เสร็จแล้ว'?'#4ade80':'#f59e0b'}">● ${o.status}</div>
+    </div>
+  `).join("");
+}
+
+// ===== ACTIONS =====
+function filterCat(cat){
+  currentCat=cat;
+  renderCats();
+  renderMenu();
+}
+
+function addToCart(id){
+  const item = MENU.find(m=>m.id===id);
+  const ex = cart.find(i=>i.id===id);
+  if(ex) ex.qty++;
+  else cart.push({...item,qty:1});
+  renderMenu();
+  renderCart();
+  notify("เพิ่ม "+item.nameTH+" แล้ว ✓");
+}
+
+function updateQty(id,delta){
+  const idx = cart.findIndex(i=>i.id===id);
+  if(idx===-1) return;
+  cart[idx].qty += delta;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  renderMenu();
+  renderCart();
+}
+
+function placeOrder(){
+  if(cart.length===0) return;
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const pts = Math.floor(total/10);
+  const now = new Date();
+  const order = {
+    id: Date.now(),
+    items: [...cart],
+    total,
+    pointsEarned: pts,
+    time: now.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}),
+    date: now.toLocaleDateString("th-TH"),
+    table: TABLE_NO,
+    status: "กำลังเตรียม",
+    userId,
+    displayName,
+  };
+
+  // Send LINE notification
+  sendLineNotify(order);
+
+  orders.unshift(order);
+  localStorage.setItem("sanuary_orders", JSON.stringify(orders));
+  points += pts;
+  localStorage.setItem("sanuary_points", points);
+  cart = [];
+
+  renderMenu();
+  renderCart();
+  renderPoints();
+  renderHistory();
+
+  document.getElementById("overlayPts").textContent = `+${pts} แต้ม 🏆`;
+  showOverlay("orderOverlay");
+}
+
+function redeemReward(id){
+  const r = REWARDS.find(x=>x.id===id);
+  if(points<r.points){ notify("แต้มไม่พอครับ","error"); return; }
+  points -= r.points;
+  localStorage.setItem("sanuary_points", points);
+  renderPoints();
+  document.getElementById("rewardIcon").textContent = r.emoji;
+  document.getElementById("rewardName").textContent = r.nameTH;
+  showOverlay("rewardOverlay");
+}
+
+function sendLineNotify(order){
+  const msg = order.items.map(i=>`  • ${i.nameTH} x${i.qty} = ฿${i.price*i.qty}`).join("\n");
+  fetch("/api/notify",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      table: order.table,
+      items: msg,
+      total: order.total,
+      name: order.displayName||"ลูกค้า",
+    })
+  }).catch(e=>console.log("notify error",e));
+}
+
+// ===== UI HELPERS =====
+function showPage(name, btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  btn.classList.add("active");
+  if(name==="cart") renderCart();
+  if(name==="points") renderPoints();
+  if(name==="history") renderHistory();
+}
+
+function notify(msg, type="success"){
+  const el = document.getElementById("notif");
+  el.textContent = msg;
+  el.className = "notif "+type+" show";
+  setTimeout(()=>el.classList.remove("show"),2500);
+}
+
+function showOverlay(id){
+  const el = document.getElementById(id);
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),3000);
+}
+</script>
+</body>
+</html>
